@@ -8,6 +8,7 @@ import math
 import matplotlib.pyplot as plt
 import scipy.io
 from scipy.interpolate import griddata
+import matplotlib.colors as colors
 
 
 class ImageFromFits:
@@ -37,7 +38,6 @@ class ImageFromFits:
             dec_axis = list(
                 np.linspace(dec_range[0], dec_range[1], n_dec_vals)
             )
-            print('uh oh')
         self.signal_arr = signal_arr
         self.ra_axis = ra_axis
         self.dec_axis = dec_axis
@@ -54,7 +54,6 @@ class ImageFromFits:
             use_dec_inds = [i for i in range(len(self.dec_axis))
                             if dec_range[0] < self.dec_axis[i] < dec_range[1]
                             ]
-            print('whoops')
         else:
             use_dec_inds = range(len(self.dec_axis))
             print('use_dec_inds:' + use_dec_inds)
@@ -190,13 +189,13 @@ def difference_images(image1, image2):
 
 
 def plot_fits_image(
-    fits_image, color_scale, output_path, title='', ra_range=None, dec_range=None, log=False,
-    colorbar_label='Flux Density (Jy/sr)', plot_grid=True,
+    fits_image, color_scale, output_path, prefix, write_pixel_coordinates, log_scale, title='', ra_range=None, dec_range=None, log=False,
+    colorbar_label='Flux Density (Jy/beam)', plot_grid=True,
     xlabel='RA (deg.)', ylabel='Dec. (deg.)'
 ):
 
-    ra_range = [25,95]
-    dec_range = [-65,5]
+    ra_range = [45,75]
+    dec_range = [-45,-15]
     colorbar_range = color_scale
     save_filename = output_path
     if ra_range is not None or dec_range is not None:
@@ -206,8 +205,14 @@ def plot_fits_image(
     print('Maximum image value {}'.format(np.max(fits_image.signal_arr)))
 
     fig, ax = plt.subplots()
+    if log_scale is True:
+        data = np.log10(fits_image.signal_arr)
+        print('Plotting on logarithmic scale')
+        colorbar_label = 'log(Flux Density)'
+    else:
+        data = fits_image.signal_arr
     plt.imshow(
-        fits_image.signal_arr, origin='lower', interpolation='none',
+        data, origin='lower', interpolation='none',
         cmap='Greys_r',
         extent=[
             fits_image.ra_axis[0], fits_image.ra_axis[-1],
@@ -215,8 +220,6 @@ def plot_fits_image(
             ],
         vmin=colorbar_range[0], vmax=colorbar_range[1], aspect='auto'
     )
-    print(fits_image.ra_axis[0])
-    print(fits_image.ra_axis[1])
     plt.axis('equal')
     #ax.set_facecolor('gray')  # make plot background gray
     ax.set_facecolor('black')
@@ -232,18 +235,28 @@ def plot_fits_image(
     else:
         print('Saving figure to {}'.format(save_filename))
         plt.savefig(save_filename, format='png', dpi=500)
+    if write_pixel_coordinates is True:
+        coords = np.array([fits_image.ra_axis, fits_image.dec_axis])
+        coords = coords.T
+        coordpath = prefix + 'pixel_coordinates.txt'
+        print('Writing out pixel coordinates in RA/DEC to ' + coordpath)
+        with open(coordpath, 'w+') as f:
+            np.savetxt(f, coords, fmt=['%f','%f'], header='RA        DEC')
+
 
 
 if __name__ == '__main__':
 
-    #orig = load_image('/Users/ruby/Downloads/1131478056_uniform_Dirty_XX_decon.fits')
-    #new = load_image('/Users/ruby/Downloads/1131478056_uniform_Dirty_XX.fits')
-    #diff = difference_images(orig, new)
-    print('testing')
-    prefix = '/Users/home/Documents/_Files/Dara/School/Graduate/RadCos/FHD_Pyuvsim_comparison/Results/'
-    filename = 'ref_1.1_uniform_uniform_Dirty_XX'
+    #prefix = '/Users/dstorer/Files/FHD_Pyuvsim_comp/TestingSuite/AdjustedPsfDim/56/fhd_djs_simComp_offzen5d_gauss_psfDim56_Aug2019/output_data/'
+    #filename = 'offzenith5d_gauss_Beam_XX'
+    prefix = '/Users/dstorer/Files/FHD_Pyuvsim_comp/fhd_djs_simComp_ref_1.1_gauss_beamAdjustmens_Aug2019/output_data/'
+    filename = 'ref_1.1_gauss_uniform_Residual_XX'
+    log_scale = False
     data = load_image(prefix + filename + '.fits')
-    output_path = prefix + filename + '_adjusted.png'
-    print('testing')
-    color_scale = [-.3,1.1]
-    plot_fits_image(data, color_scale, output_path)
+    if log_scale is True:
+        output_path = prefix + filename + '_LOGIMAGE.png'
+    else:
+        output_path = prefix + filename + '_IMAGE.png'
+    color_scale = [-0.01,0.01]
+    write_pixel_coordinates=False
+    plot_fits_image(data, color_scale, output_path, prefix, write_pixel_coordinates, log_scale)

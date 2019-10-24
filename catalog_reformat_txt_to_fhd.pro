@@ -8,7 +8,7 @@
 pro catalog_reformat_txt_to_fhd
 
     ;Path to catalog to be reformatted
-    filepath = '/Users/dstorer/Files/FHD_Pyuvsim_ComparisonSimulation/mock_catalog_heratext_2458098.38824015.txt'
+    filepath = '/Users/dstorer/Files/FHD_Pyuvsim_comp/TestingSuite/fhduvsim_compare_tests/catalog_files/zen_2458098.38824_2Jy.txt'
 
     flux_struct={flux,xx:0.,yy:0.,xy:Complex(0.),yx:Complex(0.),I:0.,Q:0.,U:0.,V:0.}
     struct_base = {id:'',ra:0.,dec:0.,freq:0.,alpha:0.,extend:Ptr_new(),flux:flux_struct} ;structure of output catalog
@@ -34,6 +34,6 @@ pro catalog_reformat_txt_to_fhd
     endfor
     
     catalog = source_struct
-    save, catalog, filename='/Users/dstorer/Files/FHD_Pyuvsim_ComparisonSimulation/mock_catalog_heratext_2458098_38824015_test.sav'
+    save, catalog, filename='/Users/dstorer/Files/FHD_Pyuvsim_comp/TestingSuite/fhduvsim_compare_tests/catalog_files/zen_2458098.38824_2Jy.sav'
 
 end

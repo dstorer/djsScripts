@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import astropy
 from astropy.io import fits
 from pyuvdata import UVData
 import numpy as np
